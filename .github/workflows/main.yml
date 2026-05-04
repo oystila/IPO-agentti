@@ -1,14 +1,32 @@
-name: Test agent
+name: USA IPO Watch
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    # 06:00 UTC = 09:00 Suomen kesäaikaan / 08:00 talviaikaan
+    - cron: "0 6 * * 1-5"
   workflow_dispatch:
 
 jobs:
-  run:
+  run-ipo-agent:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Run script
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run IPO agent
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
         run: python ipo_agent.py
